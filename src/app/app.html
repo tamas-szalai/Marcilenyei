@@ -1,11 +1,25 @@
 <div class="min-h-screen flex flex-col bg-[#070a0e] text-slate-200 relative selection:bg-emerald-500/30 selection:text-emerald-300">
 
-  <!-- Atmospheric Background Glows -->
+  <!-- Atmospheric Background Glows & Mystical Particles -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
     <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-emerald-600/10 rounded-full blur-[140px]"></div>
     <div class="absolute top-1/3 -left-40 w-[500px] h-[500px] bg-teal-600/5 rounded-full blur-[160px]"></div>
     <div class="absolute bottom-10 -right-40 w-[600px] h-[600px] bg-emerald-900/10 rounded-full blur-[180px]"></div>
     <div class="absolute inset-0 bg-[radial-gradient(#15202b_1px,transparent_1px)] [background-size:24px_24px] opacity-20"></div>
+
+    <!-- Floating Wisp / Magic Spore Particles -->
+    @for (p of particles; track $index) {
+      <div 
+        class="particle"
+        [style.top]="p.top"
+        [style.left]="p.left"
+        [style.width]="p.size"
+        [style.height]="p.size"
+        [style.background-color]="p.bg"
+        [style.animation-delay]="p.delay"
+        [style.animation-duration]="p.duration"
+      ></div>
+    }
   </div>
 
   <!-- Header -->
@@ -23,16 +37,42 @@
         </div>
         <div>
           <h1 class="text-3xl sm:text-4xl md:text-5xl tracking-wider text-emerald-400 monster-font drop-shadow-lg group-hover:text-emerald-300 transition-colors">
-            Bestiarium Marcelli
+            Marci lényei
           </h1>
           <p class="text-xs font-mono text-emerald-600/90 tracking-widest uppercase -mt-1 hidden sm:block">
-            Marci Lényei &bull; Szörnyhatározó Kódex
+            Szörnyhatározó Kódex
           </p>
         </div>
       </button>
 
       <!-- Navigation & Auth Actions -->
       <nav class="flex items-center gap-2 sm:gap-3">
+        <!-- View Switcher (Kódex / Rangsor) -->
+        <button 
+          type="button"
+          (click)="showPublicView()" 
+          [class]="currentView() === 'public' 
+            ? 'bg-emerald-600/90 text-white border-emerald-400/60 shadow-lg shadow-emerald-950/50' 
+            : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-700/80'"
+          class="inline-flex items-center gap-1.5 text-sm font-medium px-3.5 py-2.5 rounded-xl transition-all duration-300 border shadow-md active:scale-95"
+        >
+          <mat-icon class="text-base text-emerald-400">auto_stories</mat-icon>
+          <span class="hidden sm:inline">Kódex</span>
+        </button>
+
+        <button 
+          type="button"
+          (click)="showRankingView()" 
+          [class]="currentView() === 'ranking' 
+            ? 'bg-emerald-600/90 text-white border-emerald-400/60 shadow-lg shadow-emerald-950/50' 
+            : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-700/80'"
+          class="inline-flex items-center gap-1.5 text-sm font-medium px-3.5 py-2.5 rounded-xl transition-all duration-300 border shadow-md active:scale-95 relative"
+        >
+          <mat-icon class="text-base text-amber-400">military_tech</mat-icon>
+          <span>Rangsor</span>
+          <span class="hidden md:inline-flex px-1.5 py-0.2 bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-mono rounded">TOP</span>
+        </button>
+
         @if (!currentUserId()) {
           <button 
             type="button"
@@ -40,7 +80,7 @@
             class="inline-flex items-center gap-2 text-sm font-medium bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white px-4 py-2.5 rounded-xl transition-all duration-300 border border-slate-700/80 hover:border-emerald-500/50 shadow-md shadow-black/30 hover:shadow-emerald-950/30"
           >
             <mat-icon class="text-base text-emerald-400">admin_panel_settings</mat-icon>
-            <span>Admin Belépés</span>
+            <span class="hidden sm:inline">Admin Belépés</span>
           </button>
         } @else {
           <!-- Logged-in Admin Controls -->
@@ -98,6 +138,71 @@
     <!-- ========================================================================= -->
     @if (currentView() === 'public') {
       <section class="w-full">
+        
+        <!-- Summary Stats Section -->
+        <div class="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Total Monsters Stat Card -->
+          <div class="glass-panel p-5 rounded-2xl border border-emerald-900/30 shadow-xl flex items-center gap-4 relative overflow-hidden group hover:border-emerald-500/40 transition-all duration-300">
+            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-all"></div>
+            <div class="w-13 h-13 rounded-2xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-950/50 shrink-0 group-hover:scale-105 transition-transform">
+              <mat-icon class="text-3xl">auto_stories</mat-icon>
+            </div>
+            <div>
+              <p class="text-xs font-mono uppercase tracking-wider text-slate-400">Összes Bestia</p>
+              <div class="flex items-baseline gap-2 mt-0.5">
+                <span class="text-3xl font-extrabold text-white monster-font tracking-wide">{{ totalMonstersCount() }}</span>
+                <span class="text-xs text-emerald-400 font-medium">feljegyzett lény</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Unique Categories Stat Card -->
+          <div class="glass-panel p-5 rounded-2xl border border-emerald-900/30 shadow-xl flex items-center gap-4 relative overflow-hidden group hover:border-emerald-500/40 transition-all duration-300">
+            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-teal-500/5 rounded-full blur-xl group-hover:bg-teal-500/10 transition-all"></div>
+            <div class="w-13 h-13 rounded-2xl bg-teal-950/80 border border-teal-500/40 text-teal-300 flex items-center justify-center shadow-lg shadow-teal-950/50 shrink-0 group-hover:scale-105 transition-transform">
+              <mat-icon class="text-3xl">category</mat-icon>
+            </div>
+            <div>
+              <p class="text-xs font-mono uppercase tracking-wider text-slate-400">Egyedi Kategóriák</p>
+              <div class="flex items-baseline gap-2 mt-0.5">
+                <span class="text-3xl font-extrabold text-white monster-font tracking-wide">{{ totalUniqueCategoriesCount() }}</span>
+                <span class="text-xs text-teal-400 font-medium">különböző témakör</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Filter / Status Card & Quick Ranking button -->
+          <div class="glass-panel p-5 rounded-2xl border border-emerald-900/30 shadow-xl flex items-center justify-between gap-4 relative overflow-hidden sm:col-span-2 lg:col-span-1 group hover:border-emerald-500/40 transition-all duration-300">
+            <div class="flex items-center gap-4 min-w-0">
+              <div class="w-13 h-13 rounded-2xl bg-slate-900/90 border border-slate-700/80 text-emerald-400 flex items-center justify-center shadow-lg shrink-0 group-hover:scale-105 transition-transform">
+                <mat-icon class="text-3xl">filter_list</mat-icon>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xs font-mono uppercase tracking-wider text-slate-400">Jelenlegi Szűrés</p>
+                <div class="flex items-center gap-2 mt-0.5">
+                  @if (searchFilter() || selectedCategory()) {
+                    <span class="text-sm font-semibold text-emerald-300 truncate">
+                      {{ selectedCategory() ? selectedCategory() : 'Keresés aktív' }}
+                    </span>
+                    <span class="text-xs text-slate-400 font-mono">({{ filteredMonsters().length }} találat)</span>
+                  } @else {
+                    <span class="text-sm font-medium text-slate-300">Teljes archívum</span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <button 
+              type="button" 
+              (click)="showRankingView()"
+              class="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-semibold transition active:scale-95 shadow-sm"
+              title="Bestiák rangsorának megnyitása"
+            >
+              <mat-icon class="text-sm text-amber-400">military_tech</mat-icon>
+              <span>Rangsor</span>
+            </button>
+          </div>
+        </div>
         
         <!-- Search & Filter Bar -->
         <div class="mb-8 p-5 sm:p-6 rounded-2xl glass-panel shadow-2xl border border-emerald-900/30">
@@ -217,7 +322,10 @@
         <!-- Monsters Cards Container -->
         <div class="flex flex-col gap-8">
           @for (monster of filteredMonsters(); track monster.id) {
-            <article class="flex flex-col lg:flex-row bg-[#0e1622]/90 rounded-2xl overflow-hidden shadow-2xl border border-slate-800/90 hover:border-emerald-500/50 transition-all duration-300 hover:shadow-emerald-950/30 group relative">
+            <article 
+              [id]="'monster-' + monster.id"
+              class="flex flex-col lg:flex-row bg-[#0e1622]/90 rounded-2xl overflow-hidden shadow-2xl border border-slate-800/90 hover:border-emerald-500/50 transition-all duration-300 hover:shadow-emerald-950/30 group relative scroll-mt-28"
+            >
               
               <!-- Left Column: Media Showcase -->
               <div class="w-full lg:w-1/2 bg-[#090d14] flex items-center justify-center p-4 sm:p-6 border-b lg:border-b-0 lg:border-r border-slate-800/80 relative">
@@ -323,6 +431,178 @@
                   <div class="text-slate-300 leading-relaxed text-base sm:text-lg font-light space-y-4 pt-1">
                     <p class="whitespace-pre-line text-slate-200/90 selection:bg-emerald-600/30">{{ monster.description }}</p>
                   </div>
+
+                  <!-- Harci és Fizikai Értékek (Stats Grid + SVG Radar Chart) -->
+                  <div class="mt-6 pt-5 border-t border-slate-800/80">
+                    <div class="flex items-center justify-between mb-3">
+                      <span class="text-xs font-mono uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <mat-icon class="text-sm text-emerald-400">tune</mat-icon>
+                        Képesség & Harci Radar
+                      </span>
+                      <span class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded">
+                        Össz: {{ getMonsterOverall(monster) }}/100
+                      </span>
+                    </div>
+
+                    <!-- Split container: Left = Interactive Radar Chart, Right = Stat Bars -->
+                    <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-950/50 p-3 sm:p-4 rounded-2xl border border-slate-800/90">
+                      
+                      <!-- SVG Radar Chart Graphic -->
+                      <div class="shrink-0 flex flex-col items-center justify-center p-1 relative">
+                        <svg class="w-44 h-44 overflow-visible filter drop-shadow-[0_0_8px_rgba(16,185,129,0.25)]" viewBox="0 0 200 200" aria-label="Szörny képesség radar diagram">
+                          <!-- Definitions for radar gradient glow -->
+                          <defs>
+                            <radialGradient [attr.id]="'radarBgGlow-' + monster.id" cx="50%" cy="50%" r="50%">
+                              <stop offset="0%" stop-color="#10b981" stop-opacity="0.35"/>
+                              <stop offset="60%" stop-color="#059669" stop-opacity="0.15"/>
+                              <stop offset="100%" stop-color="#047857" stop-opacity="0.0"/>
+                            </radialGradient>
+                            <linearGradient [attr.id]="'radarPolygonGrad-' + monster.id" x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.6"/>
+                              <stop offset="35%" stop-color="#f59e0b" stop-opacity="0.5"/>
+                              <stop offset="70%" stop-color="#f43f5e" stop-opacity="0.5"/>
+                              <stop offset="100%" stop-color="#10b981" stop-opacity="0.6"/>
+                            </linearGradient>
+                          </defs>
+
+                          <!-- Concentric Target Web / Circles (25%, 50%, 75%, 100%) -->
+                          <circle cx="100" cy="100" r="70" fill="none" stroke="#334155" stroke-dasharray="3 3" stroke-width="1" opacity="0.6"/>
+                          <circle cx="100" cy="100" r="52.5" fill="none" stroke="#1e293b" stroke-dasharray="2 2" stroke-width="1" opacity="0.7"/>
+                          <circle cx="100" cy="100" r="35" fill="none" stroke="#1e293b" stroke-dasharray="2 2" stroke-width="1" opacity="0.8"/>
+                          <circle cx="100" cy="100" r="17.5" fill="none" stroke="#1e293b" stroke-dasharray="2 2" stroke-width="1" opacity="0.9"/>
+
+                          <!-- Cross Axis Lines -->
+                          <!-- Vertical axis: Top (Speed) to Bottom (Combat) -->
+                          <line x1="100" y1="30" x2="100" y2="170" stroke="#334155" stroke-width="1.2" opacity="0.5"/>
+                          <!-- Horizontal axis: Left (Defense) to Right (Power) -->
+                          <line x1="30" y1="100" x2="170" y2="100" stroke="#334155" stroke-width="1.2" opacity="0.5"/>
+
+                          <!-- Center glowing point -->
+                          <circle cx="100" cy="100" r="2.5" fill="#64748b" opacity="0.8"/>
+
+                          <!-- Monster Stats Radar Filled Polygon -->
+                          <polygon 
+                            [attr.points]="getRadarPolygonPoints(monster)"
+                            [attr.fill]="'url(#radarPolygonGrad-' + monster.id + ')'"
+                            stroke="#34d399"
+                            stroke-width="2.5"
+                            stroke-linejoin="round"
+                            class="transition-all duration-700 ease-out"
+                          />
+
+                          <!-- Data Points and Badges on Vertexes -->
+                          <!-- Speed point (Top) -->
+                          @let ptSpeed = getRadarPoint(monster, 'speed');
+                          <circle [attr.cx]="ptSpeed.x" [attr.cy]="ptSpeed.y" r="4" fill="#06b6d4" stroke="#ffffff" stroke-width="1.5" class="transition-all duration-700"/>
+                          
+                          <!-- Power point (Right) -->
+                          @let ptPower = getRadarPoint(monster, 'power');
+                          <circle [attr.cx]="ptPower.x" [attr.cy]="ptPower.y" r="4" fill="#f59e0b" stroke="#ffffff" stroke-width="1.5" class="transition-all duration-700"/>
+
+                          <!-- Combat point (Bottom) -->
+                          @let ptCombat = getRadarPoint(monster, 'combat');
+                          <circle [attr.cx]="ptCombat.x" [attr.cy]="ptCombat.y" r="4" fill="#f43f5e" stroke="#ffffff" stroke-width="1.5" class="transition-all duration-700"/>
+
+                          <!-- Defense point (Left) -->
+                          @let ptDefense = getRadarPoint(monster, 'defense');
+                          <circle [attr.cx]="ptDefense.x" [attr.cy]="ptDefense.y" r="4" fill="#10b981" stroke="#ffffff" stroke-width="1.5" class="transition-all duration-700"/>
+
+                          <!-- Outer Axis Labels (Speed, Power, Combat, Defense) -->
+                          <!-- Speed Label (Top) -->
+                          <text x="100" y="20" text-anchor="middle" fill="#22d3ee" font-size="10" font-weight="bold" font-family="monospace">
+                            SEB ({{ monster.speed ?? 50 }})
+                          </text>
+
+                          <!-- Power Label (Right) -->
+                          <text x="180" y="104" text-anchor="start" fill="#fbbf24" font-size="10" font-weight="bold" font-family="monospace">
+                            ERŐ ({{ monster.power ?? 50 }})
+                          </text>
+
+                          <!-- Combat Label (Bottom) -->
+                          <text x="100" y="188" text-anchor="middle" fill="#fb7185" font-size="10" font-weight="bold" font-family="monospace">
+                            HARC ({{ monster.combat ?? 50 }})
+                          </text>
+
+                          <!-- Defense Label (Left) -->
+                          <text x="20" y="104" text-anchor="end" fill="#34d399" font-size="10" font-weight="bold" font-family="monospace">
+                            VÉD ({{ monster.defense ?? 50 }})
+                          </text>
+                        </svg>
+                      </div>
+
+                      <!-- Detailed Stat Progress Bars -->
+                      <div class="flex-grow w-full space-y-2.5">
+                        <!-- Sebesség -->
+                        <div class="p-2 sm:p-2.5 rounded-xl bg-slate-900/70 border border-slate-800">
+                          <div class="flex items-center justify-between text-xs mb-1">
+                            <span class="text-cyan-300 font-medium flex items-center gap-1">
+                              <mat-icon class="text-xs text-cyan-400">speed</mat-icon>
+                              Sebesség
+                            </span>
+                            <span class="font-mono font-bold text-white">{{ monster.speed ?? 50 }}<span class="text-[10px] text-slate-500 font-normal">/100</span></span>
+                          </div>
+                          <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                            <div 
+                              class="h-full bg-gradient-to-r from-cyan-500 to-teal-400 rounded-full transition-all duration-500"
+                              [style.width.%]="monster.speed ?? 50"
+                            ></div>
+                          </div>
+                        </div>
+
+                        <!-- Erő -->
+                        <div class="p-2 sm:p-2.5 rounded-xl bg-slate-900/70 border border-slate-800">
+                          <div class="flex items-center justify-between text-xs mb-1">
+                            <span class="text-amber-300 font-medium flex items-center gap-1">
+                              <mat-icon class="text-xs text-amber-400">fitness_center</mat-icon>
+                              Erő
+                            </span>
+                            <span class="font-mono font-bold text-white">{{ monster.power ?? 50 }}<span class="text-[10px] text-slate-500 font-normal">/100</span></span>
+                          </div>
+                          <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                            <div 
+                              class="h-full bg-gradient-to-r from-amber-500 to-orange-400 rounded-full transition-all duration-500"
+                              [style.width.%]="monster.power ?? 50"
+                            ></div>
+                          </div>
+                        </div>
+
+                        <!-- Harci képesség -->
+                        <div class="p-2 sm:p-2.5 rounded-xl bg-slate-900/70 border border-slate-800">
+                          <div class="flex items-center justify-between text-xs mb-1">
+                            <span class="text-rose-300 font-medium flex items-center gap-1">
+                              <mat-icon class="text-xs text-rose-400">swords</mat-icon>
+                              Harci Képesség
+                            </span>
+                            <span class="font-mono font-bold text-white">{{ monster.combat ?? 50 }}<span class="text-[10px] text-slate-500 font-normal">/100</span></span>
+                          </div>
+                          <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                            <div 
+                              class="h-full bg-gradient-to-r from-rose-500 to-red-400 rounded-full transition-all duration-500"
+                              [style.width.%]="monster.combat ?? 50"
+                            ></div>
+                          </div>
+                        </div>
+
+                        <!-- Védelem -->
+                        <div class="p-2 sm:p-2.5 rounded-xl bg-slate-900/70 border border-slate-800">
+                          <div class="flex items-center justify-between text-xs mb-1">
+                            <span class="text-emerald-300 font-medium flex items-center gap-1">
+                              <mat-icon class="text-xs text-emerald-400">shield</mat-icon>
+                              Védelem
+                            </span>
+                            <span class="font-mono font-bold text-white">{{ monster.defense ?? 50 }}<span class="text-[10px] text-slate-500 font-normal">/100</span></span>
+                          </div>
+                          <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                            <div 
+                              class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
+                              [style.width.%]="monster.defense ?? 50"
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
                 </div>
 
                 <!-- Footer: Discovery Date and Record Info -->
@@ -380,7 +660,278 @@
     }
 
     <!-- ========================================================================= -->
-    <!-- 2. BEJELENTKEZŐ ŰRLAP (ADMIN LOGIN VIEW) -->
+    <!-- 2. RANGSOR NÉZET (MONSTER RANKING & STAT COMPARISON VIEW) -->
+    <!-- ========================================================================= -->
+    @if (currentView() === 'ranking') {
+      <section class="w-full">
+        <!-- Ranking Header Banner -->
+        <div class="mb-8 p-6 sm:p-8 rounded-2xl glass-panel shadow-2xl border border-emerald-900/40 relative overflow-hidden">
+          <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2 text-amber-400 font-mono text-xs uppercase tracking-wider mb-1">
+                <mat-icon class="text-base">military_tech</mat-icon>
+                <span>Hősi Rangsor & Összehasonlítás</span>
+              </div>
+              <h2 class="text-3xl sm:text-4xl lg:text-5xl text-emerald-400 monster-font tracking-wide drop-shadow-md">
+                A Lények Dicsőségcsarnoka
+              </h2>
+              <p class="text-slate-400 text-sm mt-1 max-w-2xl">
+                Rendezd a bestiákat képességük szerint! Kattints bármelyik lény nevére a részletes könyvbejegyzés azonnali megnyitásához.
+              </p>
+            </div>
+
+            <!-- Return to Codex button -->
+            <button 
+              type="button" 
+              (click)="showPublicView()"
+              class="self-start md:self-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 hover:border-emerald-500/50 text-sm font-medium transition shadow-md active:scale-95"
+            >
+              <mat-icon class="text-base text-emerald-400">arrow_back</mat-icon>
+              <span>Vissza a Kódexhez</span>
+            </button>
+          </div>
+
+          <!-- Sorting Criteria Tabs -->
+          <div class="mt-8 pt-6 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs text-slate-400 font-mono uppercase tracking-wider mr-1">Rendezés:</span>
+              
+              <!-- Összesített (Overall) -->
+              <button 
+                type="button"
+                (click)="setRankingCriterion('overall')"
+                [class]="rankingCriterion() === 'overall'
+                  ? 'bg-emerald-600 text-white border-emerald-400 shadow-md shadow-emerald-950/50'
+                  : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-700'"
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all inline-flex items-center gap-1.5"
+              >
+                <mat-icon class="text-xs text-emerald-300">stars</mat-icon>
+                <span>Összesített</span>
+                @if (rankingCriterion() === 'overall') {
+                  <mat-icon class="text-xs">{{ rankingSortDirection() === 'desc' ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
+                }
+              </button>
+
+              <!-- Sebesség (Speed) -->
+              <button 
+                type="button"
+                (click)="setRankingCriterion('speed')"
+                [class]="rankingCriterion() === 'speed'
+                  ? 'bg-cyan-600 text-white border-cyan-400 shadow-md shadow-cyan-950/50'
+                  : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-700'"
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all inline-flex items-center gap-1.5"
+              >
+                <mat-icon class="text-xs text-cyan-300">speed</mat-icon>
+                <span>Sebesség</span>
+                @if (rankingCriterion() === 'speed') {
+                  <mat-icon class="text-xs">{{ rankingSortDirection() === 'desc' ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
+                }
+              </button>
+
+              <!-- Erő (Power) -->
+              <button 
+                type="button"
+                (click)="setRankingCriterion('power')"
+                [class]="rankingCriterion() === 'power'
+                  ? 'bg-amber-600 text-white border-amber-400 shadow-md shadow-amber-950/50'
+                  : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-700'"
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all inline-flex items-center gap-1.5"
+              >
+                <mat-icon class="text-xs text-amber-300">fitness_center</mat-icon>
+                <span>Erő</span>
+                @if (rankingCriterion() === 'power') {
+                  <mat-icon class="text-xs">{{ rankingSortDirection() === 'desc' ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
+                }
+              </button>
+
+              <!-- Harci képesség (Combat) -->
+              <button 
+                type="button"
+                (click)="setRankingCriterion('combat')"
+                [class]="rankingCriterion() === 'combat'
+                  ? 'bg-rose-600 text-white border-rose-400 shadow-md shadow-rose-950/50'
+                  : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-700'"
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all inline-flex items-center gap-1.5"
+              >
+                <mat-icon class="text-xs text-rose-300">swords</mat-icon>
+                <span>Harci képesség</span>
+                @if (rankingCriterion() === 'combat') {
+                  <mat-icon class="text-xs">{{ rankingSortDirection() === 'desc' ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
+                }
+              </button>
+
+              <!-- Védelem (Defense) -->
+              <button 
+                type="button"
+                (click)="setRankingCriterion('defense')"
+                [class]="rankingCriterion() === 'defense'
+                  ? 'bg-emerald-600 text-white border-emerald-400 shadow-md shadow-emerald-950/50'
+                  : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-700'"
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all inline-flex items-center gap-1.5"
+              >
+                <mat-icon class="text-xs text-emerald-300">shield</mat-icon>
+                <span>Védelem</span>
+                @if (rankingCriterion() === 'defense') {
+                  <mat-icon class="text-xs">{{ rankingSortDirection() === 'desc' ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
+                }
+              </button>
+            </div>
+
+            <!-- Category Filter for Ranking -->
+            @if (categories().length > 0) {
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-400 font-mono">Szűrés:</span>
+                <select 
+                  [value]="rankingCategoryFilter()"
+                  (change)="setRankingCategory($any($event.target).value)"
+                  class="bg-[#0b1016] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+                >
+                  <option value="">Minden kategória</option>
+                  @for (c of categories(); track c) {
+                    <option [value]="c">{{ c }}</option>
+                  }
+                </select>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Ranking Leaderboard Cards -->
+        <div class="space-y-4">
+          @for (monster of rankedMonsters(); track monster.id; let idx = $index) {
+            <div 
+              class="glass-panel p-4 sm:p-5 rounded-2xl border transition-all duration-300 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-950/20 flex flex-col md:flex-row md:items-center justify-between gap-4 group"
+              [class]="idx === 0 
+                ? 'border-amber-500/50 bg-gradient-to-r from-amber-950/20 via-[#0e1622] to-[#0e1622]' 
+                : (idx === 1 
+                  ? 'border-slate-400/40 bg-gradient-to-r from-slate-800/20 via-[#0e1622] to-[#0e1622]' 
+                  : (idx === 2 
+                    ? 'border-amber-800/40 bg-gradient-to-r from-amber-950/10 via-[#0e1622] to-[#0e1622]' 
+                    : 'border-slate-800/80 bg-[#0e1622]/90'))"
+            >
+              
+              <!-- Left: Rank Medal & Info -->
+              <div class="flex items-center gap-4 min-w-0">
+                <!-- Position Medal / Number -->
+                <div 
+                  class="w-12 h-12 rounded-2xl flex items-center justify-center font-extrabold text-lg shrink-0 border shadow-md font-mono"
+                  [class]="idx === 0 
+                    ? 'bg-amber-500 text-black border-amber-300 shadow-amber-500/30' 
+                    : (idx === 1 
+                      ? 'bg-slate-300 text-black border-slate-100 shadow-slate-300/30' 
+                      : (idx === 2 
+                        ? 'bg-amber-700 text-white border-amber-600 shadow-amber-700/30' 
+                        : 'bg-slate-900 text-slate-300 border-slate-800'))"
+                >
+                  @if (idx === 0) { 🥇 } 
+                  @else if (idx === 1) { 🥈 } 
+                  @else if (idx === 2) { 🥉 } 
+                  @else { #{{ idx + 1 }} }
+                </div>
+
+                <!-- Avatar Thumbnail (if any) -->
+                @let ytId = getYoutubeId(monster.mediaUrl);
+                @let isVideo = isVideoUrl(monster.mediaUrl);
+                <div class="w-14 h-14 rounded-xl overflow-hidden bg-slate-950 border border-slate-700 shrink-0 flex items-center justify-center">
+                  @if (monster.mediaUrl && !ytId && !isVideo) {
+                    <img [src]="monster.mediaUrl" [alt]="monster.name" (error)="onImageError($event)" class="w-full h-full object-cover">
+                  } @else {
+                    <mat-icon class="text-emerald-400 text-2xl">
+                      {{ ytId || isVideo ? 'smart_display' : 'auto_stories' }}
+                    </mat-icon>
+                  }
+                </div>
+
+                <!-- Monster Name (Clickable link to jump to post) & Category -->
+                <div class="min-w-0">
+                  <button 
+                    type="button" 
+                    (click)="navigateToMonster(monster.id)" 
+                    class="text-left group/btn cursor-pointer block border-0 bg-transparent p-0"
+                    [title]="'Ugrás a bejegyzéshez: ' + monster.name"
+                  >
+                    <h3 class="text-xl sm:text-2xl text-emerald-400 monster-font tracking-wide truncate group-hover/btn:text-emerald-300 group-hover/btn:underline transition-colors flex items-center gap-2">
+                      <span>{{ monster.name }}</span>
+                      <mat-icon class="text-xs text-slate-500 group-hover/btn:text-emerald-400 transition-colors">open_in_new</mat-icon>
+                    </h3>
+                  </button>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span class="inline-flex items-center gap-1 text-[11px] font-bold text-slate-400 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      {{ monster.category }}
+                    </span>
+                    <span class="text-xs text-slate-500 font-mono hidden sm:inline">
+                      {{ formatDate(monster) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right: Detailed Stats Comparison Grid -->
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 lg:gap-6 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-800">
+                <!-- Stat mini-bars -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs w-full sm:w-auto">
+                  <!-- Sebesség -->
+                  <div class="bg-slate-900/80 border border-slate-800/90 rounded-xl px-3 py-1.5 text-center min-w-[70px]">
+                    <span class="text-[10px] uppercase font-mono text-cyan-400 block">Sebesség</span>
+                    <span class="font-bold text-sm font-mono text-white">{{ monster.speed ?? 50 }}</span>
+                  </div>
+
+                  <!-- Erő -->
+                  <div class="bg-slate-900/80 border border-slate-800/90 rounded-xl px-3 py-1.5 text-center min-w-[70px]">
+                    <span class="text-[10px] uppercase font-mono text-amber-400 block">Erő</span>
+                    <span class="font-bold text-sm font-mono text-white">{{ monster.power ?? 50 }}</span>
+                  </div>
+
+                  <!-- Harc -->
+                  <div class="bg-slate-900/80 border border-slate-800/90 rounded-xl px-3 py-1.5 text-center min-w-[70px]">
+                    <span class="text-[10px] uppercase font-mono text-rose-400 block">Harc</span>
+                    <span class="font-bold text-sm font-mono text-white">{{ monster.combat ?? 50 }}</span>
+                  </div>
+
+                  <!-- Védelem -->
+                  <div class="bg-slate-900/80 border border-slate-800/90 rounded-xl px-3 py-1.5 text-center min-w-[70px]">
+                    <span class="text-[10px] uppercase font-mono text-emerald-400 block">Védelem</span>
+                    <span class="font-bold text-sm font-mono text-white">{{ monster.defense ?? 50 }}</span>
+                  </div>
+                </div>
+
+                <!-- Highlighted Active Score & Jump Button -->
+                <div class="flex items-center justify-between sm:justify-end gap-3 min-w-[130px]">
+                  <div class="text-right">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">
+                      {{ rankingCriterion() === 'overall' ? 'Összesített' : rankingCriterion() }}
+                    </span>
+                    <span class="text-2xl font-black font-mono text-emerald-400">
+                      {{ getMonsterStat(monster, rankingCriterion()) }}<span class="text-xs text-slate-500 font-normal">/100</span>
+                    </span>
+                  </div>
+
+                  <button 
+                    type="button" 
+                    (click)="navigateToMonster(monster.id)"
+                    class="p-2.5 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/50 hover:scale-105 active:scale-95 transition"
+                    title="Bejegyzés megnyitása"
+                  >
+                    <mat-icon class="text-sm">arrow_forward</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          } @empty {
+            <div class="text-center py-16 px-6 glass-panel rounded-2xl border border-slate-800 shadow-xl max-w-xl mx-auto my-10">
+              <mat-icon class="text-5xl text-slate-600 mb-3">military_tech</mat-icon>
+              <h3 class="text-2xl text-emerald-400 monster-font mb-2">A rangsor jelenleg még üres</h3>
+              <p class="text-slate-400 text-sm">Még nem áll rendelkezésre szörny a ranglistához.</p>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- 3. BEJELENTKEZŐ ŰRLAP (ADMIN LOGIN VIEW) -->
     <!-- ========================================================================= -->
     @if (currentView() === 'login') {
       <section class="w-full max-w-md mx-auto glass-panel p-8 sm:p-10 rounded-2xl shadow-2xl mt-6 sm:mt-12 border border-emerald-900/40 relative">
@@ -598,6 +1149,127 @@
             ></textarea>
           </div>
 
+          <!-- Képesség és Harci Értékek (0 - 100) -->
+          <div class="p-5 sm:p-6 rounded-2xl bg-[#090e15] border border-slate-800 space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div class="flex items-center gap-2">
+                <mat-icon class="text-emerald-400 text-xl">tune</mat-icon>
+                <h3 class="text-lg font-bold text-white monster-font tracking-wide">
+                  Szörny Képesség és Harci Értékek (0 - 100)
+                </h3>
+              </div>
+              <span class="text-xs font-mono text-slate-400 hidden sm:inline">
+                A rangsor és az erőviszonyok meghatározásához
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <!-- Sebesség -->
+              <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                <div class="flex justify-between items-center mb-2">
+                  <label for="statSpeed" class="text-sm font-semibold text-cyan-300 flex items-center gap-1.5">
+                    <mat-icon class="text-base text-cyan-400">speed</mat-icon>
+                    Sebesség
+                  </label>
+                  <span class="font-mono font-bold text-base text-white px-2 py-0.5 bg-slate-800 rounded border border-slate-700">
+                    {{ monsterForm.controls.speed.value }}
+                  </span>
+                </div>
+                <input 
+                  type="range" 
+                  id="statSpeed" 
+                  formControlName="speed"
+                  min="0" 
+                  max="100" 
+                  class="w-full accent-cyan-400 cursor-pointer h-2 bg-slate-800 rounded-lg appearance-none"
+                />
+                <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+                  <span>0 (Lassú)</span>
+                  <span>50</span>
+                  <span>100 (Villámgyors)</span>
+                </div>
+              </div>
+
+              <!-- Erő -->
+              <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                <div class="flex justify-between items-center mb-2">
+                  <label for="statPower" class="text-sm font-semibold text-amber-300 flex items-center gap-1.5">
+                    <mat-icon class="text-base text-amber-400">fitness_center</mat-icon>
+                    Erő
+                  </label>
+                  <span class="font-mono font-bold text-base text-white px-2 py-0.5 bg-slate-800 rounded border border-slate-700">
+                    {{ monsterForm.controls.power.value }}
+                  </span>
+                </div>
+                <input 
+                  type="range" 
+                  id="statPower" 
+                  formControlName="power"
+                  min="0" 
+                  max="100" 
+                  class="w-full accent-amber-400 cursor-pointer h-2 bg-slate-800 rounded-lg appearance-none"
+                />
+                <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+                  <span>0 (Gyenge)</span>
+                  <span>50</span>
+                  <span>100 (Kolosszális)</span>
+                </div>
+              </div>
+
+              <!-- Harci képesség -->
+              <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                <div class="flex justify-between items-center mb-2">
+                  <label for="statCombat" class="text-sm font-semibold text-rose-300 flex items-center gap-1.5">
+                    <mat-icon class="text-base text-rose-400">swords</mat-icon>
+                    Harci Képesség
+                  </label>
+                  <span class="font-mono font-bold text-base text-white px-2 py-0.5 bg-slate-800 rounded border border-slate-700">
+                    {{ monsterForm.controls.combat.value }}
+                  </span>
+                </div>
+                <input 
+                  type="range" 
+                  id="statCombat" 
+                  formControlName="combat"
+                  min="0" 
+                  max="100" 
+                  class="w-full accent-rose-400 cursor-pointer h-2 bg-slate-800 rounded-lg appearance-none"
+                />
+                <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+                  <span>0 (Békés)</span>
+                  <span>50</span>
+                  <span>100 (Halálos harcos)</span>
+                </div>
+              </div>
+
+              <!-- Védelem -->
+              <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                <div class="flex justify-between items-center mb-2">
+                  <label for="statDefense" class="text-sm font-semibold text-emerald-300 flex items-center gap-1.5">
+                    <mat-icon class="text-base text-emerald-400">shield</mat-icon>
+                    Védelem / Páncélzat
+                  </label>
+                  <span class="font-mono font-bold text-base text-white px-2 py-0.5 bg-slate-800 rounded border border-slate-700">
+                    {{ monsterForm.controls.defense.value }}
+                  </span>
+                </div>
+                <input 
+                  type="range" 
+                  id="statDefense" 
+                  formControlName="defense"
+                  min="0" 
+                  max="100" 
+                  class="w-full accent-emerald-400 cursor-pointer h-2 bg-slate-800 rounded-lg appearance-none"
+                />
+                <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+                  <span>0 (Sebezhető)</span>
+                  <span>50</span>
+                  <span>100 (Áthatolhatatlan)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Buttons -->
           <div class="flex flex-col sm:flex-row gap-4 pt-3">
             <button 
@@ -731,10 +1403,10 @@
     <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-2">
         <mat-icon class="text-emerald-500 text-base">menu_book</mat-icon>
-        <span class="text-slate-300 font-medium monster-font text-lg">Bestiarium Marcelli</span>
+        <span class="text-slate-300 font-medium monster-font text-lg">Marci lényei</span>
       </div>
       <p class="text-xs sm:text-sm text-slate-400">
-        Bestiarium Marcelli &copy; {{ currentYear }}. Minden kitalált lény jogvédett! 
+        Marci lényei &copy; {{ currentYear }}. Minden kitalált lény jogvédett! 
         <a href="mailto:thedivbelldev@gmail.com" class="text-emerald-400 hover:text-emerald-300 hover:underline ml-1">thedivbelldev&#64;gmail.com</a>
       </p>
       <div class="text-xs text-slate-500 font-mono">

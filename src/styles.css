@@ -10,13 +10,39 @@
   }
 }
 
-.monster-font {
+.font-creepster {
   font-family: 'Creepster', cursive;
   letter-spacing: 0.05em;
 }
 
-.cinzel-font {
+.font-medieval {
+  font-family: 'MedievalSharp', cursive;
+  letter-spacing: 0.03em;
+}
+
+.font-pirata {
+  font-family: 'Pirata One', cursive;
+  letter-spacing: 0.06em;
+}
+
+.font-gothic {
+  font-family: 'UnifrakturMaguntia', cursive;
+  letter-spacing: 0.05em;
+}
+
+.font-cinzel {
   font-family: 'Cinzel', serif;
+  letter-spacing: 0.08em;
+}
+
+.font-glitch {
+  font-family: 'Rubik Glitch', system-ui;
+  letter-spacing: 0.04em;
+}
+
+.monster-font {
+  font-family: var(--active-monster-font, 'Cinzel'), serif;
+  letter-spacing: 0.05em;
 }
 
 /* Glow effects */
@@ -57,5 +83,48 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #10b981;
+}
+
+/* Mystical Floating Particles (Fireflies / Wisp Orbs) */
+@keyframes floatMystic {
+  0% {
+    transform: translate(0, 0) scale(0.9);
+    opacity: 0.15;
+  }
+  25% {
+    transform: translate(12px, -35px) scale(1.15);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translate(-10px, -75px) scale(1.0);
+    opacity: 0.45;
+  }
+  75% {
+    transform: translate(8px, -110px) scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(0, -150px) scale(0.85);
+    opacity: 0;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 6px 1px rgba(52, 211, 153, 0.4), 0 0 15px 3px rgba(16, 185, 129, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 12px 3px rgba(110, 231, 183, 0.7), 0 0 25px 6px rgba(16, 185, 129, 0.4);
+  }
+}
+
+.particle {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  animation-name: floatMystic, pulseGlow;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
 }
 
