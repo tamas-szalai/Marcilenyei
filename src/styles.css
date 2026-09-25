@@ -1,0 +1,61 @@
+/* Global styles and theme settings */
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #080c10;
+    color: #e2e8f0;
+  }
+}
+
+.monster-font {
+  font-family: 'Creepster', cursive;
+  letter-spacing: 0.05em;
+}
+
+.cinzel-font {
+  font-family: 'Cinzel', serif;
+}
+
+/* Glow effects */
+.glow-text-green {
+  text-shadow: 0 0 16px rgba(52, 211, 153, 0.45), 0 0 35px rgba(16, 185, 129, 0.25);
+}
+
+.glow-text-emerald {
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.6), 0 0 40px rgba(5, 150, 105, 0.3);
+}
+
+/* Dark Bestiary Parchment & Glass */
+.glass-panel {
+  background: rgba(15, 23, 36, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(52, 211, 153, 0.15);
+}
+
+.glass-card {
+  background: linear-gradient(135deg, rgba(20, 29, 43, 0.8) 0%, rgba(13, 19, 30, 0.9) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #080c10;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+  border: 2px solid #080c10;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #10b981;
+}
+

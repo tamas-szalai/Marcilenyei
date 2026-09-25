@@ -1,0 +1,6 @@
+{
+  "name": "Bestiarium Marcelli - Marci Lényei",
+  "description": "Marcell szörnykatalógusa és bestiáriuma: különleges lények, képességeik és feljegyzéseik interaktív szörnyhatározója keresővel, kategóriaszűrővel és admin felülettel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

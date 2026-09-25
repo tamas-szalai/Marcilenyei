@@ -1,0 +1,746 @@
+<div class="min-h-screen flex flex-col bg-[#070a0e] text-slate-200 relative selection:bg-emerald-500/30 selection:text-emerald-300">
+
+  <!-- Atmospheric Background Glows -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-emerald-600/10 rounded-full blur-[140px]"></div>
+    <div class="absolute top-1/3 -left-40 w-[500px] h-[500px] bg-teal-600/5 rounded-full blur-[160px]"></div>
+    <div class="absolute bottom-10 -right-40 w-[600px] h-[600px] bg-emerald-900/10 rounded-full blur-[180px]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(#15202b_1px,transparent_1px)] [background-size:24px_24px] opacity-20"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="bg-[#0b1016]/90 backdrop-blur-md border-b border-emerald-900/40 sticky top-0 z-40 shadow-xl shadow-black/40">
+    <div class="container mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+      
+      <!-- Logo / Title -->
+      <button 
+        type="button"
+        (click)="showPublicView()" 
+        class="flex items-center gap-3 cursor-pointer group select-none transition-transform active:scale-95 text-left border-0 bg-transparent p-0"
+      >
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-900/40 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-lg shadow-emerald-950/50 group-hover:border-emerald-400 group-hover:scale-105 transition-all duration-300">
+          <mat-icon class="text-2xl">auto_stories</mat-icon>
+        </div>
+        <div>
+          <h1 class="text-3xl sm:text-4xl md:text-5xl tracking-wider text-emerald-400 monster-font drop-shadow-lg group-hover:text-emerald-300 transition-colors">
+            Bestiarium Marcelli
+          </h1>
+          <p class="text-xs font-mono text-emerald-600/90 tracking-widest uppercase -mt-1 hidden sm:block">
+            Marci Lényei &bull; Szörnyhatározó Kódex
+          </p>
+        </div>
+      </button>
+
+      <!-- Navigation & Auth Actions -->
+      <nav class="flex items-center gap-2 sm:gap-3">
+        @if (!currentUserId()) {
+          <button 
+            type="button"
+            (click)="toggleAdminPanel()" 
+            class="inline-flex items-center gap-2 text-sm font-medium bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white px-4 py-2.5 rounded-xl transition-all duration-300 border border-slate-700/80 hover:border-emerald-500/50 shadow-md shadow-black/30 hover:shadow-emerald-950/30"
+          >
+            <mat-icon class="text-base text-emerald-400">admin_panel_settings</mat-icon>
+            <span>Admin Belépés</span>
+          </button>
+        } @else {
+          <!-- Logged-in Admin Controls -->
+          <div class="flex items-center gap-2">
+            <span class="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-950/60 border border-emerald-500/30 text-emerald-300">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Adminisztrátor
+            </span>
+            <button 
+              type="button"
+              (click)="toggleAdminPanel()" 
+              class="inline-flex items-center gap-2 text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl transition-all duration-300 border border-emerald-400/40 shadow-lg shadow-emerald-950/50 hover:shadow-emerald-600/30 hover:scale-[1.02] active:scale-95"
+            >
+              <mat-icon class="text-base">add_circle</mat-icon>
+              <span>Új Szörny / Admin</span>
+            </button>
+            <button 
+              type="button"
+              (click)="logoutAdmin()" 
+              class="inline-flex items-center gap-1.5 text-sm font-medium bg-rose-950/40 hover:bg-rose-900/60 text-rose-200 px-3.5 py-2.5 rounded-xl transition-all duration-300 border border-rose-800/40 hover:border-rose-600/60 shadow-md shadow-black/30 hover:text-white active:scale-95"
+              title="Kijelentkezés"
+            >
+              <mat-icon class="text-base text-rose-400">logout</mat-icon>
+              <span class="hidden sm:inline">Kijelentkezés</span>
+            </button>
+          </div>
+        }
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="container mx-auto px-4 sm:px-6 py-8 flex-grow relative z-10 max-w-7xl">
+    
+    <!-- Loading Overlay -->
+    @if (isLoading()) {
+      <div class="fixed inset-0 flex flex-col justify-center items-center bg-[#070a0e]/85 backdrop-blur-md z-50">
+        <div class="relative w-24 h-24 mb-6">
+          <div class="absolute inset-0 rounded-full border-4 border-emerald-900/40"></div>
+          <div class="absolute inset-0 rounded-full border-4 border-t-emerald-400 border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+          <div class="absolute inset-2 rounded-full border-4 border-teal-500/30 animate-pulse"></div>
+          <div class="absolute inset-0 flex items-center justify-center text-emerald-400">
+            <mat-icon class="text-3xl">auto_fix_high</mat-icon>
+          </div>
+        </div>
+        <p class="text-lg font-medium text-emerald-300/90 tracking-wider monster-font text-2xl">
+          Bestiárium lapozása...
+        </p>
+        <p class="text-xs text-slate-400 mt-1">Lények adatainak lekérése a kódexből</p>
+      </div>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- 1. PUBLIKUS NÉZET (SZÖRNYEK LISTÁJA) -->
+    <!-- ========================================================================= -->
+    @if (currentView() === 'public') {
+      <section class="w-full">
+        
+        <!-- Search & Filter Bar -->
+        <div class="mb-8 p-5 sm:p-6 rounded-2xl glass-panel shadow-2xl border border-emerald-900/30">
+          <div class="flex flex-col lg:flex-row gap-4 justify-between items-center">
+            
+            <!-- Search Input -->
+            <div class="w-full lg:w-3/5 relative group">
+              <input 
+                type="text" 
+                [value]="searchFilter()"
+                (input)="onSearchInput($event)"
+                placeholder="Keresés szörny neve alapján..." 
+                class="w-full bg-[#0d141d]/90 text-white placeholder-slate-400 rounded-xl pl-12 pr-10 py-3.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/80 border border-slate-700/80 focus:border-emerald-500 transition-all text-base shadow-inner group-hover:border-slate-600"
+              />
+              <div class="absolute left-4 top-3.5 text-slate-400 group-hover:text-emerald-400 transition-colors pointer-events-none">
+                <mat-icon class="text-xl">search</mat-icon>
+              </div>
+              @if (searchFilter()) {
+                <button 
+                  type="button" 
+                  (click)="clearSearch()" 
+                  class="absolute right-3.5 top-3.5 text-slate-400 hover:text-white p-1 rounded-full hover:bg-slate-700/60 transition-colors"
+                  title="Keresés törlése"
+                >
+                  <mat-icon class="text-base">close</mat-icon>
+                </button>
+              }
+            </div>
+
+            <!-- Category Dropdown Filter -->
+            <div class="w-full lg:w-2/5 flex items-center gap-2">
+              <div class="relative w-full">
+                <select 
+                  [value]="selectedCategory()"
+                  (change)="onCategoryChange($event)"
+                  class="w-full bg-[#0d141d]/90 text-white rounded-xl pl-11 pr-10 py-3.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/80 border border-slate-700/80 focus:border-emerald-500 cursor-pointer transition-all appearance-none text-base shadow-inner"
+                >
+                  <option value="">Összes kategória</option>
+                  @for (cat of categories(); track cat) {
+                    <option [value]="cat">{{ cat }} ({{ categoryCounts()[cat] || 0 }})</option>
+                  }
+                </select>
+                <div class="absolute left-3.5 top-3.5 text-slate-400 pointer-events-none">
+                  <mat-icon class="text-xl">category</mat-icon>
+                </div>
+                <div class="absolute right-3.5 top-3.5 text-slate-400 pointer-events-none">
+                  <mat-icon class="text-xl">expand_more</mat-icon>
+                </div>
+              </div>
+
+              @if (selectedCategory() || searchFilter()) {
+                <button 
+                  type="button" 
+                  (click)="clearSearch(); setCategory('')" 
+                  class="px-3.5 py-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-all text-xs font-medium whitespace-nowrap shadow-sm"
+                  title="Szűrők visszaállítása"
+                >
+                  Szűrők törlése
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Quick Category Filter Chips -->
+          @if (categories().length > 0) {
+            <div class="mt-4 pt-4 border-t border-slate-800/80 flex flex-wrap items-center gap-2">
+              <span class="text-xs text-slate-400 font-medium mr-1 flex items-center gap-1">
+                <mat-icon class="text-sm text-emerald-400">filter_alt</mat-icon>
+                Gyorsszűrő:
+              </span>
+              <button 
+                type="button"
+                (click)="setCategory('')"
+                [class]="selectedCategory() === '' 
+                  ? 'bg-emerald-600 text-white border-emerald-400 shadow-md shadow-emerald-950/40' 
+                  : 'bg-slate-800/70 hover:bg-slate-700 text-slate-300 border-slate-700/60'"
+                class="px-3 py-1 rounded-lg text-xs font-medium border transition-all"
+              >
+                Összes ({{ monsters().length }})
+              </button>
+              @for (cat of categories(); track cat) {
+                <button 
+                  type="button"
+                  (click)="setCategory(cat)"
+                  [class]="selectedCategory() === cat 
+                    ? 'bg-emerald-600 text-white border-emerald-400 shadow-md shadow-emerald-950/40' 
+                    : 'bg-slate-800/70 hover:bg-slate-700 text-slate-300 border-slate-700/60'"
+                  class="px-3 py-1 rounded-lg text-xs font-medium border transition-all"
+                >
+                  {{ cat }} ({{ categoryCounts()[cat] || 0 }})
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Monsters Counter Header -->
+        <div class="flex items-center justify-between mb-6 px-1">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400"></span>
+            <span class="text-sm font-semibold tracking-wider text-slate-300 uppercase font-mono">
+              Találatok: <span class="text-emerald-400 font-bold">{{ filteredMonsters().length }}</span> / {{ monsters().length }} bestia
+            </span>
+          </div>
+          @if (currentUserId()) {
+            <button 
+              type="button"
+              (click)="toggleAdminPanel()" 
+              class="inline-flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 hover:underline"
+            >
+              <mat-icon class="text-sm">add</mat-icon>
+              Új bestia rögzítése
+            </button>
+          }
+        </div>
+
+        <!-- Monsters Cards Container -->
+        <div class="flex flex-col gap-8">
+          @for (monster of filteredMonsters(); track monster.id) {
+            <article class="flex flex-col lg:flex-row bg-[#0e1622]/90 rounded-2xl overflow-hidden shadow-2xl border border-slate-800/90 hover:border-emerald-500/50 transition-all duration-300 hover:shadow-emerald-950/30 group relative">
+              
+              <!-- Left Column: Media Showcase -->
+              <div class="w-full lg:w-1/2 bg-[#090d14] flex items-center justify-center p-4 sm:p-6 border-b lg:border-b-0 lg:border-r border-slate-800/80 relative">
+                @let ytId = getYoutubeId(monster.mediaUrl);
+                @let isVideo = isVideoUrl(monster.mediaUrl);
+
+                @if (monster.mediaUrl) {
+                  @if (ytId) {
+                    <!-- YouTube Video Embed -->
+                    <div class="relative w-full overflow-hidden rounded-xl shadow-2xl border border-slate-700/80 bg-black aspect-video group-hover:border-emerald-500/40 transition-colors">
+                      <iframe 
+                        class="absolute top-0 left-0 w-full h-full" 
+                        [src]="getSafeYoutubeUrl(ytId)" 
+                        [title]="monster.name" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                      </iframe>
+                    </div>
+                  } @else if (isVideo) {
+                    <!-- HTML5 Video Player -->
+                    <div class="w-full rounded-xl overflow-hidden border border-slate-700/80 bg-black shadow-2xl">
+                      <video controls class="w-full max-h-[440px] object-contain mx-auto">
+                        <source [src]="monster.mediaUrl">
+                        A böngésződ nem támogatja a videók lejátszását.
+                      </video>
+                    </div>
+                  } @else {
+                    <!-- Image with click-to-expand lightbox -->
+                    <button 
+                      type="button"
+                      class="relative w-full rounded-xl overflow-hidden border border-slate-700/80 shadow-2xl group/img max-h-[460px] bg-slate-950 flex items-center justify-center cursor-pointer p-0 text-left border-0"
+                      (click)="openImageModal(monster.mediaUrl, monster.name)"
+                      [title]="'Kép nagyítása: ' + monster.name"
+                    >
+                      <img 
+                        [src]="monster.mediaUrl" 
+                        [alt]="monster.name" 
+                        referrerpolicy="no-referrer"
+                        (error)="onImageError($event)"
+                        class="w-full h-auto object-cover max-h-[440px] group-hover/img:scale-105 transition-transform duration-500" 
+                      />
+                      <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity flex items-end justify-end p-3">
+                        <span class="px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur-sm text-xs text-white flex items-center gap-1 border border-white/20">
+                          <mat-icon class="text-sm">zoom_in</mat-icon>
+                          Nagyítás
+                        </span>
+                      </div>
+                    </button>
+                  }
+                } @else {
+                  <!-- Fallback: No media uploaded -->
+                  <div class="w-full h-[260px] sm:h-[320px] bg-[#0c1219] rounded-xl border border-dashed border-slate-800 flex flex-col items-center justify-center text-slate-500 gap-3 p-6 text-center">
+                    <div class="w-16 h-16 rounded-full bg-slate-900/90 border border-slate-800 flex items-center justify-center text-slate-600">
+                      <mat-icon class="text-3xl">hide_image</mat-icon>
+                    </div>
+                    <div>
+                      <p class="font-medium text-slate-400">Nincs feltöltve média</p>
+                      <p class="text-xs text-slate-600 mt-0.5">Ehhez a lényhez nem tartozik kép vagy videó illusztráció</p>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Right Column: Monster Details & Description -->
+              <div class="w-full lg:w-1/2 p-6 sm:p-8 flex flex-col justify-between relative bg-gradient-to-br from-[#0e1622] via-[#0d141f] to-[#090e15]">
+                
+                <!-- Admin Floating Action Buttons (if user is authenticated) -->
+                @if (currentUserId()) {
+                  <div class="absolute top-4 right-4 flex items-center gap-2 z-20">
+                    <button 
+                      type="button"
+                      (click)="editMonster(monster)" 
+                      title="Szerkesztés" 
+                      class="w-9 h-9 rounded-xl bg-blue-600/90 hover:bg-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-950/50 hover:scale-105 active:scale-95 transition-all border border-blue-400/40"
+                    >
+                      <mat-icon class="text-sm">edit</mat-icon>
+                    </button>
+                    <button 
+                      type="button"
+                      (click)="promptDeleteMonster(monster)" 
+                      title="Törlés" 
+                      class="w-9 h-9 rounded-xl bg-rose-600/90 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg shadow-rose-950/50 hover:scale-105 active:scale-95 transition-all border border-rose-400/40"
+                    >
+                      <mat-icon class="text-sm">delete</mat-icon>
+                    </button>
+                  </div>
+                }
+
+                <div>
+                  <!-- Header: Monster Name & Category Pill -->
+                  <div class="flex flex-wrap items-center justify-between gap-3 mb-5" [class.pr-24]="currentUserId()">
+                    <h2 class="text-3xl sm:text-4xl lg:text-5xl text-emerald-400 monster-font tracking-wide drop-shadow-md break-words group-hover:text-emerald-300 transition-colors">
+                      {{ monster.name }}
+                    </h2>
+                    <span class="inline-flex items-center gap-1.5 bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 text-xs font-bold px-3.5 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
+                      <mat-icon class="text-xs">shield</mat-icon>
+                      {{ monster.category }}
+                    </span>
+                  </div>
+
+                  <!-- Description Body with whitespace preservation -->
+                  <div class="text-slate-300 leading-relaxed text-base sm:text-lg font-light space-y-4 pt-1">
+                    <p class="whitespace-pre-line text-slate-200/90 selection:bg-emerald-600/30">{{ monster.description }}</p>
+                  </div>
+                </div>
+
+                <!-- Footer: Discovery Date and Record Info -->
+                <div class="mt-8 pt-4 border-t border-slate-800/80 text-xs text-slate-400 flex flex-wrap items-center justify-between gap-2">
+                  <div class="flex items-center gap-1.5 text-slate-400 font-mono">
+                    <mat-icon class="text-sm text-emerald-500">history_edu</mat-icon>
+                    <span>Felfedezve: {{ formatDate(monster) }}</span>
+                  </div>
+                  <div class="text-slate-600 text-xs font-mono">
+                    Azonosító: #{{ monster.id.slice(0, 6) }}
+                  </div>
+                </div>
+
+              </div>
+            </article>
+            }
+          </div>
+
+          <!-- Empty State: When no monsters match the filters or database is empty -->
+          @if (!isLoading() && filteredMonsters().length === 0) {
+            <div class="text-center py-16 px-6 glass-panel rounded-2xl border border-slate-800 shadow-xl max-w-xl mx-auto my-10">
+              <div class="w-20 h-20 rounded-full bg-slate-900 border border-slate-700/80 flex items-center justify-center text-emerald-400 mx-auto mb-4">
+                <mat-icon class="text-4xl">{{ monsters().length === 0 ? 'auto_stories' : 'search_off' }}</mat-icon>
+              </div>
+              <h3 class="text-2xl text-emerald-400 monster-font mb-2">
+                {{ monsters().length === 0 ? 'A Bestiárium jelenleg még üres' : 'A könyv nem rejt ilyen lényt' }}
+              </h3>
+              <p class="text-slate-400 text-base leading-relaxed">
+                {{ monsters().length === 0 ? 'Még nem lett rögzítve lény az adatbázisban, vagy a felhőkapcsolat inicializálódik. Lépj be adminként az első lény felvételéhez!' : 'Nincs találat a keresési feltételeknek. Próbálj valami mást!' }}
+              </p>
+              <div class="mt-6 flex flex-wrap justify-center gap-3">
+                @if (searchFilter() || selectedCategory()) {
+                  <button 
+                    type="button" 
+                    (click)="clearSearch(); setCategory('')" 
+                    class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm transition-all shadow-lg shadow-emerald-950/50"
+                  >
+                    Szűrők törlése és összes mutatása
+                  </button>
+                }
+                @if (!currentUserId()) {
+                  <button 
+                    type="button" 
+                    (click)="toggleAdminPanel()" 
+                    class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-sm transition-all"
+                  >
+                    Admin Belépés
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
+      </section>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- 2. BEJELENTKEZŐ ŰRLAP (ADMIN LOGIN VIEW) -->
+    <!-- ========================================================================= -->
+    @if (currentView() === 'login') {
+      <section class="w-full max-w-md mx-auto glass-panel p-8 sm:p-10 rounded-2xl shadow-2xl mt-6 sm:mt-12 border border-emerald-900/40 relative">
+        <div class="text-center mb-8">
+          <div class="w-16 h-16 rounded-2xl bg-emerald-950/80 border border-emerald-500/40 flex items-center justify-center text-emerald-400 mx-auto mb-4 shadow-lg shadow-emerald-950/50">
+            <mat-icon class="text-3xl">lock</mat-icon>
+          </div>
+          <h2 class="text-3xl sm:text-4xl text-emerald-400 monster-font tracking-wide">
+            Admin Belépés
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Lépj be a kódex szerkesztéséhez és új lények felvételéhez</p>
+        </div>
+
+        <form [formGroup]="loginForm" (ngSubmit)="handleLogin()" class="space-y-5">
+          <div>
+            <label for="adminEmail" class="block text-sm font-medium text-slate-300 mb-1.5">E-mail cím</label>
+            <div class="relative">
+              <input 
+                type="email" 
+                id="adminEmail" 
+                formControlName="email"
+                required 
+                placeholder="admin@szornykodex.hu"
+                class="w-full bg-[#0d141d] border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 border-slate-700/80 transition-all text-sm"
+              />
+              <div class="absolute left-3.5 top-3 text-slate-400 pointer-events-none">
+                <mat-icon class="text-lg">mail</mat-icon>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label for="adminPassword" class="block text-sm font-medium text-slate-300 mb-1.5">Jelszó</label>
+            <div class="relative">
+              <input 
+                type="password" 
+                id="adminPassword" 
+                formControlName="password"
+                required 
+                placeholder="••••••••"
+                class="w-full bg-[#0d141d] border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 border-slate-700/80 transition-all text-sm"
+              />
+              <div class="absolute left-3.5 top-3 text-slate-400 pointer-events-none">
+                <mat-icon class="text-lg">key</mat-icon>
+              </div>
+            </div>
+          </div>
+
+          @if (loginError()) {
+            <div class="text-center font-medium rounded-xl p-3 text-rose-200 bg-rose-950/70 border border-rose-800/80 text-sm flex items-center justify-center gap-2">
+              <mat-icon class="text-base text-rose-400">error</mat-icon>
+              <span>{{ loginError() }}</span>
+            </div>
+          }
+
+          <div class="pt-2 flex flex-col gap-3">
+            <button 
+              type="submit" 
+              [disabled]="isLoggingIn()"
+              class="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-base py-3.5 rounded-xl transition duration-300 shadow-xl shadow-emerald-950/50 flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-95"
+            >
+              @if (isLoggingIn()) {
+                <div class="w-5 h-5 rounded-full border-2 border-white border-t-transparent animate-spin"></div>
+                <span>Belépés folyamatban...</span>
+              } @else {
+                <mat-icon class="text-lg">login</mat-icon>
+                <span>Belépés</span>
+              }
+            </button>
+
+            <button 
+              type="button" 
+              (click)="showPublicView()" 
+              class="w-full bg-slate-800/70 hover:bg-slate-700 text-slate-300 hover:text-white text-sm py-2.5 rounded-xl transition border border-slate-700/60"
+            >
+              Vissza a Bestiáriumhoz
+            </button>
+          </div>
+        </form>
+      </section>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- 3. ADMIN SZERKESZTŐ / HOZZÁADÓ ŰRLAP (ADMIN VIEW) -->
+    <!-- ========================================================================= -->
+    @if (currentView() === 'admin') {
+      <section class="w-full max-w-3xl mx-auto glass-panel p-6 sm:p-10 rounded-2xl shadow-2xl mt-4 sm:mt-8 border border-emerald-900/40 relative">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-5 mb-8">
+          <div>
+            <h2 class="text-3xl sm:text-4xl text-emerald-400 monster-font tracking-wide">
+              {{ isEditing() ? 'Lény szerkesztése' : 'Új Lény Felvétele az Adatbázisba' }}
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">
+              {{ isEditing() ? 'Módosítsd a szörny tulajdonságait és adatait a könyvben' : 'Gazdagítsd a bestiáriumot egy új felfedezett lénnyel' }}
+            </p>
+          </div>
+          <button 
+            type="button" 
+            (click)="showPublicView()" 
+            class="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition"
+            title="Bezárás / Vissza"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <form [formGroup]="monsterForm" (ngSubmit)="handleSaveMonster()" class="space-y-6">
+          
+          <!-- Szörny Neve -->
+          <div>
+            <label for="monsterName" class="block text-sm font-medium text-slate-300 mb-1.5">
+              Szörny Neve <span class="text-emerald-400">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="monsterName" 
+              formControlName="name"
+              required 
+              placeholder="pl. Csápos Rettenet" 
+              class="w-full bg-[#0d141d] border border-slate-700/80 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-base"
+            />
+          </div>
+
+          <!-- Kategória / Témakör -->
+          <div>
+            <label for="monsterCategory" class="block text-sm font-medium text-slate-300 mb-1.5">
+              Kategória / Témakör <span class="text-emerald-400">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="monsterCategory" 
+              formControlName="category"
+              required 
+              placeholder="pl. Erdei, Vízi, Űrlény, Árnyék..." 
+              class="w-full bg-[#0d141d] border border-slate-700/80 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-base"
+            />
+            
+            <!-- Quick Category Pill Suggestions -->
+            <div class="mt-2.5 flex flex-wrap items-center gap-1.5">
+              <span class="text-xs text-slate-500 font-mono">Javaslatok:</span>
+              @for (cat of ['Erdei', 'Vízi', 'Űrlény', 'Árnyék', 'Tűz', 'Mágikus', 'Kriptid', 'Sárkány']; track cat) {
+                <button 
+                  type="button" 
+                  (click)="setCategoryPreset(cat)"
+                  class="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700 transition"
+                >
+                  + {{ cat }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Média URL (Kép / Videó) -->
+          <div>
+            <label for="monsterMediaUrl" class="block text-sm font-medium text-slate-300 mb-1.5">
+              Kép vagy Videó URL (Opcionális)
+            </label>
+            <input 
+              type="url" 
+              id="monsterMediaUrl" 
+              formControlName="mediaUrl"
+              placeholder="https://..." 
+              class="w-full bg-[#0d141d] border border-slate-700/80 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-base"
+            />
+            <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
+              <mat-icon class="text-xs text-emerald-400">info</mat-icon>
+              Illessz be ide egy Cloudinary linket (kép vagy .mp4 videó) vagy egy YouTube videó linkjét.
+            </p>
+
+            <!-- Live Media Preview Component -->
+            @let preview = formMediaPreview();
+            @if (preview) {
+              <div class="mt-4 p-4 rounded-xl bg-slate-900/90 border border-emerald-900/40">
+                <span class="text-xs text-emerald-400 font-mono uppercase tracking-wider block mb-2">Média előnézet:</span>
+                @if (preview.type === 'youtube') {
+                  <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-slate-700 bg-black">
+                    <iframe 
+                      class="absolute inset-0 w-full h-full" 
+                      [src]="preview.safeUrl" 
+                      title="Előnézet" 
+                      frameborder="0" 
+                      allowfullscreen>
+                    </iframe>
+                  </div>
+                } @else if (preview.type === 'video') {
+                  <video controls class="w-full max-h-[300px] rounded-lg border border-slate-700 bg-black">
+                    <source [src]="preview.url">
+                  </video>
+                } @else {
+                  <img 
+                    [src]="preview.url" 
+                    alt="Előnézet" 
+                    (error)="onImageError($event)"
+                    class="w-full max-h-[300px] object-contain rounded-lg border border-slate-700 bg-black"
+                  />
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Részletes Leírás és Képességek -->
+          <div>
+            <label for="monsterDescription" class="block text-sm font-medium text-slate-300 mb-1.5">
+              Részletes Leírás és Képességek <span class="text-emerald-400">*</span>
+            </label>
+            <textarea 
+              id="monsterDescription" 
+              formControlName="description"
+              required 
+              rows="6" 
+              placeholder="Meséld el, hol él, mit eszik, és mik a különleges képességei..." 
+              class="w-full bg-[#0d141d] border border-slate-700/80 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-y transition-all text-base leading-relaxed"
+            ></textarea>
+          </div>
+
+          <!-- Buttons -->
+          <div class="flex flex-col sm:flex-row gap-4 pt-3">
+            <button 
+              type="submit" 
+              [disabled]="isSavingMonster() || monsterForm.invalid"
+              class="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-lg py-4 px-6 rounded-xl transition duration-300 shadow-xl shadow-emerald-950/60 hover:shadow-emerald-600/40 hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
+            >
+              @if (isSavingMonster()) {
+                <div class="w-5 h-5 rounded-full border-2 border-white border-t-transparent animate-spin"></div>
+                <span>Adatok mentése...</span>
+              } @else {
+                <mat-icon class="text-xl">{{ isEditing() ? 'save' : 'add_task' }}</mat-icon>
+                <span>{{ isEditing() ? 'Változtatások mentése' : 'Lény feltöltése a könyvbe' }}</span>
+              }
+            </button>
+
+            @if (isEditing()) {
+              <button 
+                type="button" 
+                (click)="cancelEdit()" 
+                class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-lg py-4 px-6 rounded-xl transition duration-300 shadow-lg flex items-center justify-center gap-2"
+              >
+                <mat-icon class="text-xl">cancel</mat-icon>
+                <span>Mégse</span>
+              </button>
+            }
+          </div>
+        </form>
+
+        <!-- Admin feedback alert -->
+        @if (adminMessage()) {
+          <div 
+            [class]="adminMessage()!.isError 
+              ? 'bg-rose-950/80 text-rose-200 border-rose-800' 
+              : 'bg-emerald-950/80 text-emerald-200 border-emerald-800'"
+            class="mt-6 text-center font-bold p-4 rounded-xl border flex items-center justify-center gap-2 transition-all shadow-lg"
+          >
+            <mat-icon class="text-xl">{{ adminMessage()!.isError ? 'error' : 'check_circle' }}</mat-icon>
+            <span>{{ adminMessage()!.text }}</span>
+          </div>
+        }
+
+      </section>
+    }
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- LIGHTBOX IMAGE MODAL -->
+  <!-- ========================================================================= -->
+  @if (expandedImage()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <button 
+        type="button" 
+        (click)="closeImageModal()" 
+        class="fixed inset-0 w-full h-full bg-black/90 backdrop-blur-md border-0 cursor-default"
+        aria-label="Kép bezárása"
+      ></button>
+      <div class="relative z-10 max-w-5xl max-h-[90vh] bg-slate-900 rounded-2xl overflow-hidden border border-emerald-500/30 shadow-2xl p-2">
+        <div class="flex items-center justify-between p-3 border-b border-slate-800 text-emerald-400">
+          <h4 class="monster-font text-2xl truncate">{{ expandedImage()!.title }}</h4>
+          <button 
+            type="button" 
+            (click)="closeImageModal()" 
+            class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            aria-label="Bezárás"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <div class="p-2 flex items-center justify-center">
+          <img 
+            [src]="expandedImage()!.url" 
+            [alt]="expandedImage()!.title" 
+            referrerpolicy="no-referrer"
+            class="max-h-[75vh] w-auto object-contain rounded-lg"
+          />
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- DELETE CONFIRMATION MODAL -->
+  <!-- ========================================================================= -->
+  @if (monsterToDelete()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in">
+      <button 
+        type="button" 
+        (click)="cancelDelete()" 
+        class="fixed inset-0 w-full h-full bg-black/85 backdrop-blur-sm border-0 cursor-default"
+        aria-label="Mégse"
+      ></button>
+      <div class="relative z-10 w-full max-w-md bg-slate-900 rounded-2xl border border-rose-800/80 p-6 shadow-2xl">
+        <div class="w-14 h-14 rounded-2xl bg-rose-950/80 border border-rose-600/40 text-rose-400 flex items-center justify-center mx-auto mb-4">
+          <mat-icon class="text-3xl">delete_forever</mat-icon>
+        </div>
+        <h3 class="text-2xl text-center font-bold text-white mb-2">Szörny törlése</h3>
+        <p class="text-slate-300 text-center text-sm mb-6 leading-relaxed">
+          Biztosan törölni szeretnéd ezt a szörnyet (<strong class="text-rose-400">{{ monsterToDelete()!.name }}</strong>)? Ezt nem lehet visszavonni!
+        </p>
+        <div class="flex gap-3">
+          <button 
+            type="button" 
+            (click)="cancelDelete()"
+            class="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-sm transition"
+          >
+            Mégse
+          </button>
+          <button 
+            type="button" 
+            [disabled]="isDeleting()"
+            (click)="confirmDeleteMonster()"
+            class="flex-1 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white font-bold text-sm transition shadow-lg shadow-rose-950/50 flex items-center justify-center gap-1.5"
+          >
+            @if (isDeleting()) {
+              <div class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"></div>
+              <span>Törlés...</span>
+            } @else {
+              <mat-icon class="text-base">delete</mat-icon>
+              <span>Igen, törlöm</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Footer -->
+  <footer class="bg-[#080d14] border-t border-slate-800/90 text-center p-6 text-slate-400 text-sm mt-auto relative z-10">
+    <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <mat-icon class="text-emerald-500 text-base">menu_book</mat-icon>
+        <span class="text-slate-300 font-medium monster-font text-lg">Bestiarium Marcelli</span>
+      </div>
+      <p class="text-xs sm:text-sm text-slate-400">
+        Bestiarium Marcelli &copy; {{ currentYear }}. Minden kitalált lény jogvédett! 
+        <a href="mailto:thedivbelldev@gmail.com" class="text-emerald-400 hover:text-emerald-300 hover:underline ml-1">thedivbelldev&#64;gmail.com</a>
+      </p>
+      <div class="text-xs text-slate-500 font-mono">
+        v2.0 &bull; Szörnykódex
+      </div>
+    </div>
+  </footer>
+
+</div>
